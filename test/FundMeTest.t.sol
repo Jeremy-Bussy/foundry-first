@@ -8,21 +8,48 @@ import {FundMe} from "../src/FundMe.sol";
 import {DeployFundMe} from "../script/DeployFundMe.s.sol";
  
 contract FundMeTest is Test {
+   FundMe fundMe;
  
-    FundMe fundMe;
- 
- function setUp() external {
-    DeployFundMe deployFundMe = new DeployFundMe();
-    fundMe = deployFundMe.run();
- }
+    address USER = makeAddr("user");
+    uint256 SEND_AMOUNT = 0.1 ether;
+    uint256 STARTING_BALANCE = 10 ether;
 
- function testMinimumUsdIsFive() public view {
-    uint256 minUsd = fundMe.MINIMUM_USD();
-    assertEqUint(minUsd, 5*10**18);
- }
+    function setUp() external {
+        DeployFundMe deployFundMe = new DeployFundMe();
+        fundMe = deployFundMe.run();
+        vm.deal(USER, STARTING_BALANCE);
+    }
+ 
+   function setUp() external {
+      DeployFundMe deployFundMe = new DeployFundMe();
+      fundMe = deployFundMe.run();
+   }
+
+   function testMinimumUsdIsFive() public view {
+      uint256 minUsd = fundMe.MINIMUM_USD();
+      assertEqUint(minUsd, 5*10**18);
+   }
 
    function testFundFailsWithoutEnoughEth() public {
-        vm.expectRevert();
-        fundMe.fund();
-    }
+      vm.expectRevert();
+      fundMe.fund();
+   }
+
+   function getAmountFundedByAddress(address addr) external view  returns(uint256) {
+      return s_fundedAmountBy[addr];
+   }
+
+   function getFunders(uint256 index) external view returns(address) {
+      return s_funders[index];
+   }
+
+   function testFundDataStructureUpdated() public {
+      vm.prank(USER); //The next tx will be sent bu USER
+      //We pass 1 ETH for funding
+      fundMe.fund{value: SEND_AMOUNT}();
+      uint256 amountFunded = fundMe.getAmountFundedByAddress(USER);
+      console.log(amountFunded);
+      //We test that amount funded equals to 1 ETH
+      assertEq(amountFunded, SEND_AMOUNT);
+   }
 }
