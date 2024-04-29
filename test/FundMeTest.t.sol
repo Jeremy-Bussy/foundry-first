@@ -3,7 +3,6 @@
 pragma solidity ^0.8.18;
  
 import {Test, console} from "forge-std/Test.sol";
-import {console} from "forge-std/Script.sol";
 import {FundMe} from "../src/FundMe.sol";
 import {DeployFundMe} from "../script/DeployFundMe.s.sol";
  
@@ -46,6 +45,8 @@ contract FundMeTest is Test {
    }
 
    modifier funded() {
+      
+      console.log('balance of user', USER.balance);
       vm.prank(USER);
       fundMe.fund{value: SEND_AMOUNT}();
       _;
@@ -65,5 +66,23 @@ contract FundMeTest is Test {
       address funder = fundMe.getFunders(0);
       assertEq(funder, USER);
    }
+
+
+   function testBalanceAfterWithdraw() public funded {
+      //Arrange
+      uint256 startingOwnerBalance = fundMe.getOwner().balance;
+      uint256 startingFundMeBalance = address(fundMe).balance;
+
+      //Act
+      vm.prank(fundMe.getOwner());
+      fundMe.withdrawal();
+
+      //Assert
+      uint256 endingOwnerBalance = fundMe.getOwner().balance;
+      uint256 endingFundMeBalance = address(fundMe).balance;
+      assertEq(endingFundMeBalance, 0);
+      assertEq(startingOwnerBalance + startingFundMeBalance, endingOwnerBalance);
+   }
+ 
  
 }
