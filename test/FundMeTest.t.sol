@@ -32,6 +32,7 @@ contract FundMeTest is Test {
    function testFundFailsWithoutEnoughEth() public {
       vm.expectRevert();
       fundMe.fund();
+      
    }
 
    function testFundDataStructureUpdated() public {
@@ -45,8 +46,6 @@ contract FundMeTest is Test {
    }
 
    modifier funded() {
-      
-      console.log('balance of user', USER.balance);
       vm.prank(USER);
       fundMe.fund{value: SEND_AMOUNT}();
       _;
