@@ -21,4 +21,8 @@ contract FundMeTest is Test {
     assertEqUint(minUsd, 5*10**18);
  }
 
+   function testFundFailsWithoutEnoughEth() public {
+        vm.expectRevert();
+        fundMe.fund();
+    }
 }
